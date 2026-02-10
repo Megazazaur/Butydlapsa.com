@@ -18,40 +18,38 @@ body {
     position: relative;
 }.container { z-index: 3; padding: 20px; }
 
-h1 { font-size: 2rem; margin-bottom: 30px; text-shadow: 2px 2px 8px rgba(0,0,0,0.3); }
+h1 { font-size: 2rem; margin-bottom: 30px; }
 
 .buttons { position: relative; height: 200px; }
 
-button { padding: 15px 30px; font-size: 1.2rem; border: none; border-radius: 40px; cursor: pointer; transition: 0.3s ease; position: absolute; }
+button { padding: 15px 30px; font-size: 1.2rem; border: none; border-radius: 40px; cursor: pointer; transition: 0.2s ease; position: absolute; }
 
 #yesBtn { background-color: #ff2e63; color: white; left: 20%; }
 
-#yesBtn:hover { background-color: #ff0040; transform: scale(1.1); }
-
 #noBtn { background-color: white; color: #ff2e63; left: 60%; }
 
-canvas { position: fixed; top: 0; left: 0; pointer-events: none; }
+#photoContainer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 10; }
 
-#heartsCanvas { z-index: 1; } #fireworks { z-index: 2; }
+#photoContainer img { max-width: 90%; max-height: 90%; border-radius: 20px; box-shadow: 0 0 30px white; }
 
 @media (max-width: 600px) { h1 { font-size: 1.5rem; } button { font-size: 1rem; } } </style>
 
 </head>
-<body><canvas id="heartsCanvas"></canvas> <canvas id="fireworks"></canvas>
-
-<div class="container">
+<body><div id="photoContainer">
+    <!-- ZAPISZ ZDJĘCIE JAKO np. pies.jpg W TYM SAMYM FOLDERZE -->
+    <img src="pies.jpg" alt="Zdjęcie">
+</div><div class="container">
     <h1>Czy chcesz zostać moją walentynką Julciu Bombelku? ❤️</h1>
     <div class="buttons">
         <button id="yesBtn">TAK</button>
         <button id="noBtn">NIE :((</button>
     </div>
-</div><audio id="loveMusic" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
-
-<script>
+</div><script>
 const noBtn = document.getElementById('noBtn');
 const yesBtn = document.getElementById('yesBtn');
-const music = document.getElementById('loveMusic');
-let noScale = 1;
+const photoContainer = document.getElementById('photoContainer');
+
+// ===== PRZYCISK NIE UCIEKA I NIE DA SIĘ GO KLIKNĄĆ =====
 
 function moveButton() {
     const maxX = window.innerWidth - noBtn.offsetWidth;
@@ -60,105 +58,33 @@ function moveButton() {
     const randomY = Math.random() * maxY;
     noBtn.style.left = randomX + 'px';
     noBtn.style.top = randomY + 'px';
-
-    if (noScale > 0.4) {
-        noScale -= 0.1;
-        noBtn.style.transform = `scale(${noScale})`;
-    }
 }
 
+// Ucieka przy próbie najechania
 noBtn.addEventListener('mouseover', moveButton);
+
+// Ucieka przy próbie kliknięcia (blokada kliknięcia)
+noBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    moveButton();
+});
+
+// Na telefonie też nie da się kliknąć
 noBtn.addEventListener('touchstart', function(e) {
     e.preventDefault();
     moveButton();
 });
 
-const heartsCanvas = document.getElementById('heartsCanvas');
-const heartsCtx = heartsCanvas.getContext('2d');
-heartsCanvas.width = window.innerWidth;
-heartsCanvas.height = window.innerHeight;
-
-let hearts = [];
-
-function createHeart() {
-    hearts.push({
-        x: Math.random() * heartsCanvas.width,
-        y: heartsCanvas.height + 20,
-        size: Math.random() * 20 + 10,
-        speed: Math.random() * 2 + 1
-    });
-}
-
-function drawHeart(x, y, size) {
-    heartsCtx.beginPath();
-    heartsCtx.moveTo(x, y);
-    heartsCtx.bezierCurveTo(x - size/2, y - size/2, x - size, y + size/3, x, y + size);
-    heartsCtx.bezierCurveTo(x + size, y + size/3, x + size/2, y - size/2, x, y);
-    heartsCtx.fillStyle = 'rgba(255,255,255,0.7)';
-    heartsCtx.fill();
-}
-
-function animateHearts() {
-    heartsCtx.clearRect(0, 0, heartsCanvas.width, heartsCanvas.height);
-    if (Math.random() < 0.1) createHeart();
-    hearts.forEach((h, index) => {
-        drawHeart(h.x, h.y, h.size);
-        h.y -= h.speed;
-        if (h.y < -20) hearts.splice(index, 1);
-    });
-    requestAnimationFrame(animateHearts);
-}
-animateHearts();
-
-const canvas = document.getElementById('fireworks');
-const ctx = canvas.getContext('2d');
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-
-let particles = [];
-
-function createFirework() {
-    for (let i = 0; i < 120; i++) {
-        particles.push({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height / 2,
-            radius: Math.random() * 3 + 1,
-            color: `hsl(${Math.random() * 360}, 100%, 60%)`,
-            speedX: (Math.random() - 0.5) * 8,
-            speedY: (Math.random() - 0.5) * 8,
-            life: 100
-        });
-    }
-}
-
-function animateFireworks() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    particles.forEach((p, index) => {
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fillStyle = p.color;
-        ctx.fill();
-        p.x += p.speedX;
-        p.y += p.speedY;
-        p.life--;
-        if (p.life <= 0) particles.splice(index, 1);
-    });
-    requestAnimationFrame(animateFireworks);
-}
-animateFireworks();
+// ===== PO KLIKNIĘCIU TAK WYSKAKUJE ZDJĘCIE =====
 
 yesBtn.addEventListener('click', () => {
-    music.play();
-    for (let i = 0; i < 6; i++) {
-        setTimeout(createFirework, i * 300);
-    }
+    photoContainer.style.display = 'flex';
 });
 
-window.addEventListener('resize', () => {
-    heartsCanvas.width = window.innerWidth;
-    heartsCanvas.height = window.innerHeight;
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+// Kliknięcie w zdjęcie zamyka je
+photoContainer.addEventListener('click', () => {
+    photoContainer.style.display = 'none';
 });
+
 </script></body>
-</html>
+</html
